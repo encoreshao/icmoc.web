@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Login System Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            dark: {
+              900: '#0F172A',
+              800: '#1E293B',
+              700: '#334155',
+              600: '#475569',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .expandable-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 0;
+    }
+
+    .expandable-content.active {
+      max-height: 500px;
+      opacity: 1;
+    }
+
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1E293B;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748B;
+    }
+
+    /* Glassmorphism card */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Glow effects */
+    .glow-blue {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .glow-emerald {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .glow-purple {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    }
+
+    .glow-orange {
+      box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+    }
+
+    /* Animated gradient background */
+    .animated-bg {
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 15s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .animated-bg {
+        animation: none;
+      }
+      .expandable-content {
+        transition: none;
+      }
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Grid pattern overlay */
+    .grid-pattern {
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+
+<body class="animated-bg grid-pattern min-h-screen text-slate-100 p-4 sm:p-6 lg:p-8 font-sans">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="text-center mb-10">
+      <div class="inline-flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center glow-blue">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-800 via-blue-400 to-blue-200 bg-clip-text text-transparent">
+            Rails Login System
+          </h1>
+          <p class="text-slate-400 text-sm font-medium tracking-wide">Complete Authentication Flow Diagram</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="flex justify-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-thin" role="tablist">
+      <button onclick="showTab('overview')"
+        class="tab-btn px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-2 bg-blue-600 text-white shadow-lg glow-blue"
+        data-tab="overview" role="tab" aria-selected="true">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        Overview
+      </button>
+      <button onclick="showTab('login')"
+        class="tab-btn px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-2 glass-card text-slate-300 hover:text-white hover:bg-dark-700"
+        data-tab="login" role="tab" aria-selected="false">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+        Login Flow
+      </button>
+      <button onclick="showTab('request')"
+        class="tab-btn px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-2 glass-card text-slate-300 hover:text-white hover:bg-dark-700"
+        data-tab="request" role="tab" aria-selected="false">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Request Flow
+      </button>
+      <button onclick="showTab('logout')"
+        class="tab-btn px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-2 glass-card text-slate-300 hover:text-white hover:bg-dark-700"
+        data-tab="logout" role="tab" aria-selected="false">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Logout Flow
+      </button>
+      <button onclick="showTab('architecture')"
+        class="tab-btn px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-2 glass-card text-slate-300 hover:text-white hover:bg-dark-700"
+        data-tab="architecture" role="tab" aria-selected="false">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        Architecture
+      </button>
+    </nav>
+
+    <!-- Overview Tab -->
+    <div id="overview" class="tab-content active">
+      <div class="space-y-6">
+        <div class="glass-card rounded-2xl p-6 sm:p-8">
+          <h2 class="text-xl sm:text-2xl font-bold mb-6 text-white flex items-center gap-3">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            System Components
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <!-- Browser Card -->
+            <div class="group relative bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30 rounded-xl p-5 hover:border-blue-400/50 transition-all duration-300 cursor-pointer hover:glow-blue">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-blue-300">Browser</h3>
+                  <span class="text-xs text-blue-400/70">Client Side</span>
+                </div>
+              </div>
+              <div class="bg-dark-900/50 rounded-lg p-3">
+                <span class="text-sm font-semibold text-slate-300">Cookie Storage:</span>
+                <div class="mt-2 font-mono text-xs bg-dark-800 p-2 rounded text-blue-300 break-all">
+                  _your_app_session=eyJzZXNzaW9uX2lkIjoi...
+                </div>
+                <ul class="mt-3 text-sm text-slate-400 space-y-1">
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Encrypted session ID</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>HttpOnly flag (no JS access)</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Secure flag (HTTPS only)</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>SameSite protection</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Rails Server Card -->
+            <div class="group relative bg-gradient-to-br from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 hover:border-emerald-400/50 transition-all duration-300 cursor-pointer hover:glow-emerald">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-emerald-300">Rails Server</h3>
+                  <span class="text-xs text-emerald-400/70">Application Layer</span>
+                </div>
+              </div>
+              <div class="bg-dark-900/50 rounded-lg p-3">
+                <span class="text-sm font-semibold text-slate-300">Components:</span>
+                <ul class="mt-3 text-sm text-slate-400 space-y-1">
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>Devise (authentication)</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>Warden (middleware)</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>ActionDispatch::Session</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>Cookie encryptor/decryptor</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Memcache Card -->
+            <div class="group relative bg-gradient-to-br from-purple-600/20 to-purple-500/10 border border-purple-500/30 rounded-xl p-5 hover:border-purple-400/50 transition-all duration-300 cursor-pointer hover:glow-purple">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-purple-300">Memcache</h3>
+                  <span class="text-xs text-purple-400/70">Session Storage</span>
+                </div>
+              </div>
+              <div class="bg-dark-900/50 rounded-lg p-3">
+                <span class="text-sm font-semibold text-slate-300">Session Storage:</span>
+                <div class="mt-2 font-mono text-xs bg-dark-800 p-2 rounded text-purple-300 break-all">
+                  Key: "sessions:8f3a2c1b..."<br>
+                  Value: Marshal.dump(data)
+                </div>
+                <ul class="mt-3 text-sm text-slate-400 space-y-1">
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>Fast in-memory storage</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>TTL: 14 days</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>Stores session data hash</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Database Card -->
+            <div class="group relative bg-gradient-to-br from-orange-600/20 to-orange-500/10 border border-orange-500/30 rounded-xl p-5 hover:border-orange-400/50 transition-all duration-300 cursor-pointer hover:glow-orange">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-orange-300">Database</h3>
+                  <span class="text-xs text-orange-400/70">Persistent Storage</span>
+                </div>
+              </div>
+              <div class="bg-dark-900/50 rounded-lg p-3">
+                <span class="text-sm font-semibold text-slate-300">User Data:</span>
+                <ul class="mt-3 text-sm text-slate-400 space-y-1">
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-orange-400"></span>id, email, encrypted_password</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-orange-400"></span>sign_in_count</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-orange-400"></span>current_sign_in_at</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-orange-400"></span>remember_token (optional)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What's Stored Where Table -->
+        <div class="glass-card rounded-2xl p-6 sm:p-8">
+          <h2 class="text-xl sm:text-2xl font-bold mb-6 text-white flex items-center gap-3">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            What's Stored Where?
+          </h2>
+
+          <div class="overflow-x-auto rounded-xl">
+            <table class="w-full text-sm">
+              <thead class="bg-dark-700/50">
+                <tr>
+                  <th class="p-4 text-left text-slate-300 font-semibold">Location</th>
+                  <th class="p-4 text-left text-slate-300 font-semibold">Data Stored</th>
+                  <th class="p-4 text-left text-slate-300 font-semibold">Size</th>
+                  <th class="p-4 text-left text-slate-300 font-semibold">Lifespan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-dark-700">
+                <tr class="hover:bg-dark-700/30 transition-colors">
+                  <td class="p-4 font-semibold text-blue-400 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                    Browser Cookie
+                  </td>
+                  <td class="p-4 text-slate-400">
+                    <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Encrypted session ID only</span>
+                    <code class="text-xs text-blue-300 font-mono mt-1 block">"eyJzZXNz...3NpZCI6Ij"</code>
+                  </td>
+                  <td class="p-4 text-slate-400">~100-200 bytes</td>
+                  <td class="p-4 text-slate-400">14 days (or session)</td>
+                </tr>
+                <tr class="hover:bg-dark-700/30 transition-colors bg-dark-800/30">
+                  <td class="p-4 font-semibold text-purple-400 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                    Memcache
+                  </td>
+                  <td class="p-4 text-slate-400">
+                    <div class="space-y-1">
+                      <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-purple-400"></span>session_id</span>
+                      <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-purple-400"></span>warden.user.user.key</span>
+                      <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-purple-400"></span>_csrf_token, flash messages</span>
+                    </div>
+                  </td>
+                  <td class="p-4 text-slate-400">~500-2000 bytes</td>
+                  <td class="p-4 text-slate-400">14 days (TTL)</td>
+                </tr>
+                <tr class="hover:bg-dark-700/30 transition-colors">
+                  <td class="p-4 font-semibold text-orange-400 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                    Database
+                  </td>
+                  <td class="p-4 text-slate-400">
+                    <div class="space-y-1">
+                      <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-orange-400"></span>User credentials</span>
+                      <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-orange-400"></span>encrypted_password</span>
+                      <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-orange-400"></span>Login history & profile</span>
+                    </div>
+                  </td>
+                  <td class="p-4 text-slate-400">Varies</td>
+                  <td class="p-4 text-slate-400">Permanent</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Flow Tab -->
+    <div id="login" class="tab-content">
+      <div class="glass-card rounded-2xl p-6 sm:p-8">
+        <h2 class="text-xl sm:text-2xl font-bold mb-6 text-white flex items-center gap-3">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+          Login Flow (Step by Step)
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Step 1 -->
+          <div class="relative border-l-2 border-blue-500 bg-blue-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-blue-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">1</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">User submits login form</h3>
+              <div class="inline-block bg-dark-800 border border-blue-500/30 p-3 rounded-lg">
+                <div class="flex items-center gap-2 text-blue-400 text-xs font-semibold mb-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                  Browser
+                </div>
+                <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">POST /users/sign_in
+Email: user@example.com
+Password: ••••••••</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">2</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Rails receives request</h3>
+              <div class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg">
+                <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                  Rails
+                </div>
+                <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">Devise::SessionsController#create
+↓
+Params: {email, password}</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="relative border-l-2 border-orange-500 bg-orange-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-orange-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">3</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Verify credentials</h3>
+              <div class="flex flex-wrap gap-3">
+                <div class="bg-dark-800 border border-emerald-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                    Rails
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">User.find_for_authentication(email)
+↓
+user.valid_password?(password)</pre>
+                </div>
+                <div class="bg-dark-800 border border-orange-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-orange-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                    Database
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">SELECT * FROM users
+WHERE email = '...'
+↓
+Return user record</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">4</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Generate session</h3>
+              <div class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg">
+                <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                  Rails
+                </div>
+                <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">session_id = SecureRandom.hex(16)
+↓
+'8f3a2c1b9d4e5f6a7b8c9d0e1f2a3b4c'</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="relative border-l-2 border-purple-500 bg-purple-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-purple-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">5</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Store session in Memcache</h3>
+              <div class="flex flex-wrap gap-3">
+                <div class="bg-dark-800 border border-emerald-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                    Rails
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">Session data prepared:
+{
+  session_id: '8f3a...',
+  warden.user.user.key: [[123], '$2a$...']
+}</pre>
+                </div>
+                <div class="bg-dark-800 border border-purple-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-purple-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                    Memcache
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">STORE
+Key: 'sessions:8f3a...'
+Value: Marshal.dump(data)
+TTL: 14 days</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">6</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Encrypt session ID</h3>
+              <div class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg">
+                <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                  Rails
+                </div>
+                <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">Encrypt session_id with secret_key_base
+↓
+encrypted = 'eyJzZXNzaW9u...'</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 7 -->
+          <div class="relative border-l-2 border-blue-500 bg-blue-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-blue-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">7</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Set cookie in response</h3>
+              <div class="flex flex-wrap gap-3">
+                <div class="bg-dark-800 border border-blue-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-blue-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                    Browser
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">Receive response:
+Set-Cookie: _your_app_session=eyJzZXNz...
+HttpOnly; Secure; SameSite=Lax
+↓
+Store in browser cookies</pre>
+                </div>
+                <div class="bg-dark-800 border border-emerald-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                    Rails
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">HTTP 302 Redirect
+Set-Cookie header added</pre>
+                </div>
+                <div class="bg-dark-800 border border-orange-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-orange-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                    Database
+                  </div>
+                  <pre class="font-mono text-xs text-slate-300 whitespace-pre-wrap">UPDATE users
+SET sign_in_count++,
+    current_sign_in_at = NOW()</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 8 - Success -->
+          <div class="relative border-l-2 border-emerald-400 bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 p-4 sm:p-5 rounded-r-xl">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center ring-4 ring-dark-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-emerald-300 mb-3 flex items-center gap-2">
+                User is logged in!
+                <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">SUCCESS</span>
+              </h3>
+              <div class="flex flex-wrap gap-3">
+                <div class="bg-dark-800 border border-blue-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-blue-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                    Browser
+                  </div>
+                  <p class="font-mono text-xs text-slate-300">Browser now has cookie<br><span class="text-emerald-400">✓ Authenticated</span></p>
+                </div>
+                <div class="bg-dark-800 border border-purple-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-purple-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                    Memcache
+                  </div>
+                  <p class="font-mono text-xs text-slate-300"><span class="text-emerald-400">✓</span> Session stored</p>
+                </div>
+                <div class="bg-dark-800 border border-orange-500/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-2 text-orange-400 text-xs font-semibold mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                    Database
+                  </div>
+                  <p class="font-mono text-xs text-slate-300"><span class="text-emerald-400">✓</span> Login recorded</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request Flow Tab -->
+    <div id="request" class="tab-content">
+      <div class="glass-card rounded-2xl p-6 sm:p-8">
+        <h2 class="text-xl sm:text-2xl font-bold mb-6 text-white flex items-center gap-3">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Authenticated Request Flow
+        </h2>
+
+        <div class="space-y-4">
+          <div class="relative border-l-2 border-blue-500 bg-blue-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-blue-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">1</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Browser sends request with cookie</h3>
+              <pre class="inline-block bg-dark-800 border border-blue-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">GET /dashboard
+Cookie: _your_app_session=eyJzZXNzaW9u...</pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">2</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Rails extracts cookie</h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">ActionDispatch::Cookies reads cookie
+↓
+Encrypted value: 'eyJzZXNzaW9u...'</pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">3</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Decrypt session ID</h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">MessageEncryptor.decrypt_and_verify(cookie)
+↓
+session_id = '8f3a2c1b9d4e5f6a7b8c9d0e1f2a3b4c'</pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-purple-500 bg-purple-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-purple-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">4</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Fetch from Memcache</h3>
+              <pre class="inline-block bg-dark-800 border border-purple-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">cache_key = 'sessions:8f3a2c1b...'
+raw_data = Memcache.get(cache_key)
+↓
+Found: <span class="text-emerald-400">true</span></pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">5</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Deserialize session data</h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">session_data = Marshal.load(raw_data)
+↓
+{
+  session_id: '8f3a...',
+  warden.user.user.key: [[123], '$2a$...']
+}</pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">6</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Warden authenticates user</h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">user_id = session_data['warden.user.user.key'][0][0]
+↓
+user_id = <span class="text-blue-400">123</span></pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-orange-500 bg-orange-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-orange-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">7</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Load user from database</h3>
+              <pre class="inline-block bg-dark-800 border border-orange-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">User.find(<span class="text-blue-400">123</span>)
+↓
+Return user object</pre>
+            </div>
+          </div>
+
+          <!-- Step 8 - Success -->
+          <div class="relative border-l-2 border-emerald-400 bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 p-4 sm:p-5 rounded-r-xl">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center ring-4 ring-dark-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-emerald-300 mb-3 flex items-center gap-2">
+                Set current_user
+                <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">SUCCESS</span>
+              </h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">@current_user = user
+↓
+Request authenticated <span class="text-emerald-400">✓</span>
+Controller action executes</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Flow Tab -->
+    <div id="logout" class="tab-content">
+      <div class="glass-card rounded-2xl p-6 sm:p-8">
+        <h2 class="text-xl sm:text-2xl font-bold mb-6 text-white flex items-center gap-3">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Logout Flow
+        </h2>
+
+        <div class="space-y-4">
+          <div class="relative border-l-2 border-blue-500 bg-blue-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-blue-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">1</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">User clicks logout</h3>
+              <pre class="inline-block bg-dark-800 border border-blue-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">DELETE /users/sign_out
+Cookie: _your_app_session=eyJzZXNz...</pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-emerald-500 bg-emerald-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-emerald-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">2</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Rails processes logout</h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">Devise::SessionsController#destroy
+↓
+Extract session_id from cookie</pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-purple-500 bg-purple-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-purple-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">3</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Delete from Memcache</h3>
+              <pre class="inline-block bg-dark-800 border border-purple-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">cache_key = 'sessions:8f3a2c1b...'
+Memcache.delete(cache_key)
+↓
+Session data removed <span class="text-emerald-400">✓</span></pre>
+            </div>
+          </div>
+
+          <div class="relative border-l-2 border-blue-500 bg-blue-500/10 p-4 sm:p-5 rounded-r-xl hover:bg-blue-500/15 transition-colors cursor-pointer">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold ring-4 ring-dark-900">4</div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-white mb-3">Clear cookie in browser</h3>
+              <pre class="inline-block bg-dark-800 border border-blue-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">Set-Cookie: _your_app_session=; expires=Thu, 01 Jan 1970
+↓
+Browser deletes cookie</pre>
+            </div>
+          </div>
+
+          <!-- Step 5 - Success -->
+          <div class="relative border-l-2 border-emerald-400 bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 p-4 sm:p-5 rounded-r-xl">
+            <div class="absolute -left-3 top-5 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center ring-4 ring-dark-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-base font-bold text-emerald-300 mb-3 flex items-center gap-2">
+                User logged out
+                <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">SUCCESS</span>
+              </h3>
+              <pre class="inline-block bg-dark-800 border border-emerald-500/30 p-3 rounded-lg font-mono text-xs text-slate-300">current_user = nil
+<span class="text-emerald-400">✓</span> No cookie
+<span class="text-emerald-400">✓</span> No session in Memcache
+<span class="text-emerald-400">✓</span> User must login again</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Tab -->
+    <div id="architecture" class="tab-content">
+      <div class="glass-card rounded-2xl p-6 sm:p-8">
+        <h2 class="text-xl sm:text-2xl font-bold mb-6 text-white flex items-center gap-3">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          System Architecture
+        </h2>
+
+        <!-- Visual System Diagram -->
+        <div class="bg-dark-900/80 p-6 sm:p-8 rounded-xl mb-6 relative overflow-hidden border border-dark-700">
+          <!-- Background Pattern -->
+          <div class="absolute inset-0 opacity-30 grid-pattern"></div>
+
+          <div class="relative grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Browser -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-blue-600/80 to-blue-700/80 text-white p-5 rounded-xl border border-blue-500/40 transition-all duration-300 hover:border-blue-400/70 hover:glow-blue cursor-pointer" onclick="toggleExpand('browser-details')">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-12 h-12 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-lg">Browser</div>
+                    <div class="text-blue-200 text-xs">Client Side</div>
+                  </div>
+                </div>
+                <div class="text-sm bg-blue-900/50 p-3 rounded-lg">
+                  <div class="font-mono text-xs text-blue-200">Cookie Storage</div>
+                  <div class="mt-1 text-blue-100 text-sm">Encrypted Session ID</div>
+                </div>
+                <div class="mt-3 text-xs text-blue-200 flex items-center gap-1">
+                  <span>Click to expand</span>
+                  <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+              <div id="browser-details" class="expandable-content mt-3 bg-blue-950/70 border border-blue-800/50 p-4 rounded-lg text-white text-sm">
+                <div class="font-semibold mb-2 text-blue-300">Cookie Details:</div>
+                <ul class="space-y-1 text-blue-200 text-xs">
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Name: _your_app_session</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Size: ~100-200 bytes</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>HttpOnly: Yes (no JS access)</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>Secure: Yes (HTTPS only)</li>
+                  <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-blue-400"></span>SameSite: Lax (CSRF protection)</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden lg:flex items-center justify-center">
+              <div class="flex flex-col items-center gap-2">
+                <svg class="w-12 h-12 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="text-emerald-400 text-xs font-mono text-center">HTTP Request<br/>+ Cookie</div>
+              </div>
+            </div>
+
+            <!-- Rails Server -->
+            <div class="group lg:col-span-2">
+              <div class="bg-gradient-to-br from-emerald-600/80 to-emerald-700/80 text-white p-5 rounded-xl border border-emerald-500/40 transition-all duration-300 hover:border-emerald-400/70 hover:glow-emerald cursor-pointer" onclick="toggleExpand('rails-details')">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-12 h-12 bg-emerald-500/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-lg">Rails Server</div>
+                    <div class="text-emerald-200 text-xs">Application Layer</div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="text-sm bg-emerald-900/50 p-3 rounded-lg">
+                    <div class="font-mono text-xs text-emerald-200">Devise</div>
+                    <div class="mt-1 text-emerald-100 text-xs">Authentication</div>
+                  </div>
+                  <div class="text-sm bg-emerald-900/50 p-3 rounded-lg">
+                    <div class="font-mono text-xs text-emerald-200">Warden</div>
+                    <div class="mt-1 text-emerald-100 text-xs">Session Manager</div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-emerald-200 flex items-center gap-1">
+                  <span>Click to expand</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+              <div id="rails-details" class="expandable-content mt-3 bg-emerald-950/70 border border-emerald-800/50 p-4 rounded-lg text-white text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <div class="font-semibold mb-2 text-emerald-300">Components:</div>
+                    <ul class="space-y-1 text-emerald-200 text-xs">
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>ActionDispatch::Session</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>MessageEncryptor</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>ActiveSupport::MessageVerifier</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>Rack::Session::Dalli</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <div class="font-semibold mb-2 text-emerald-300">Security:</div>
+                    <ul class="space-y-1 text-emerald-200 text-xs">
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>AES-256-GCM encryption</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>HMAC signing</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>secret_key_base derivation</li>
+                      <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>CSRF token validation</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second Row -->
+          <div class="relative grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
+            <!-- Memcache -->
+            <div class="lg:col-span-2 group">
+              <div class="bg-gradient-to-br from-purple-600/80 to-purple-700/80 text-white p-5 rounded-xl border border-purple-500/40 transition-all duration-300 hover:border-purple-400/70 hover:glow-purple cursor-pointer" onclick="toggleExpand('memcache-details')">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-12 h-12 bg-purple-500/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-lg">Memcache</div>
+                    <div class="text-purple-200 text-xs">Session Storage</div>
+                  </div>
+                </div>
+                <div class="text-sm bg-purple-900/50 p-3 rounded-lg font-mono text-xs">
+                  <div class="text-purple-200">Key: "sessions:8f3a2c1b..."</div>
+                  <div class="text-purple-100 mt-1">Value: Marshal.dump(session_data)</div>
+                </div>
+                <div class="mt-3 text-xs text-purple-200 flex items-center gap-1">
+                  <span>Click to expand</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+              <div id="memcache-details" class="expandable-content mt-3 bg-purple-950/70 border border-purple-800/50 p-4 rounded-lg text-white text-sm">
+                <div class="font-semibold mb-2 text-purple-300">Session Data Stored:</div>
+                <div class="bg-dark-900 p-3 rounded font-mono text-xs text-purple-200 overflow-x-auto">
+<pre>{
+  "session_id": "8f3a2c1b9d4e5f6a...",
+  "warden.user.user.key": [[123], "$2a$12$..."],
+  "_csrf_token": "abc123...",
+  "flash": {},
+  "last_accessed": "2026-01-20T10:30:00Z"
+}</pre>
+                </div>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-purple-200">
+                  <div class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>TTL: 14 days</div>
+                  <div class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>Size: ~500-2000 bytes</div>
+                  <div class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>Serialization: Marshal</div>
+                  <div class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-purple-400"></span>In-memory (fast)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden lg:flex items-center justify-center">
+              <div class="flex flex-col items-center gap-2">
+                <svg class="w-12 h-12 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="text-orange-400 text-xs font-mono text-center">User.find(id)</div>
+              </div>
+            </div>
+
+            <!-- Database -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-orange-600/80 to-orange-700/80 text-white p-5 rounded-xl border border-orange-500/40 transition-all duration-300 hover:border-orange-400/70 hover:glow-orange cursor-pointer" onclick="toggleExpand('db-details')">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-12 h-12 bg-orange-500/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-lg">Database</div>
+                    <div class="text-orange-200 text-xs">Persistent Storage</div>
+                  </div>
+                </div>
+                <div class="text-sm bg-orange-900/50 p-3 rounded-lg">
+                  <div class="font-mono text-xs text-orange-200">users table</div>
+                  <div class="mt-1 text-orange-100 text-xs">Credentials & Profile</div>
+                </div>
+                <div class="mt-3 text-xs text-orange-200 flex items-center gap-1">
+                  <span>Click to expand</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+              <div id="db-details" class="expandable-content mt-3 bg-orange-950/70 border border-orange-800/50 p-4 rounded-lg text-white text-sm">
+                <div class="font-semibold mb-2 text-orange-300">User Record:</div>
+                <div class="bg-dark-900 p-3 rounded font-mono text-xs text-orange-200 overflow-x-auto">
+<pre>id: 123
+email: "user@example.com"
+encrypted_password: "$2a$12$..."
+sign_in_count: 42
+current_sign_in_at: "2026-01-20"
+last_sign_in_at: "2026-01-19"
+remember_created_at: null</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connection Lines (Mobile) -->
+          <div class="lg:hidden flex flex-col items-center gap-2 my-4">
+            <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Security Layers -->
+        <div class="bg-gradient-to-r from-rose-600/80 to-pink-600/80 p-6 rounded-xl text-white mb-6 border border-rose-500/30">
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            Security Layers
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div class="bg-white/10 p-4 rounded-lg backdrop-blur text-center border border-white/10 hover:border-white/20 transition-colors cursor-pointer">
+              <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-rose-500/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
+              <div class="font-semibold text-sm">Encryption</div>
+              <div class="text-xs text-rose-200 mt-1">AES-256-GCM</div>
+            </div>
+            <div class="bg-white/10 p-4 rounded-lg backdrop-blur text-center border border-white/10 hover:border-white/20 transition-colors cursor-pointer">
+              <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-rose-500/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </div>
+              <div class="font-semibold text-sm">HMAC</div>
+              <div class="text-xs text-rose-200 mt-1">Tamper Protection</div>
+            </div>
+            <div class="bg-white/10 p-4 rounded-lg backdrop-blur text-center border border-white/10 hover:border-white/20 transition-colors cursor-pointer">
+              <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-rose-500/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              </div>
+              <div class="font-semibold text-sm">HttpOnly</div>
+              <div class="text-xs text-rose-200 mt-1">No JS Access</div>
+            </div>
+            <div class="bg-white/10 p-4 rounded-lg backdrop-blur text-center border border-white/10 hover:border-white/20 transition-colors cursor-pointer">
+              <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-rose-500/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
+              <div class="font-semibold text-sm">Secure</div>
+              <div class="text-xs text-rose-200 mt-1">HTTPS Only</div>
+            </div>
+            <div class="bg-white/10 p-4 rounded-lg backdrop-blur text-center border border-white/10 hover:border-white/20 transition-colors cursor-pointer">
+              <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-rose-500/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              </div>
+              <div class="font-semibold text-sm">SameSite</div>
+              <div class="text-xs text-rose-200 mt-1">CSRF Protection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Flow Summary -->
+        <div class="bg-gradient-to-r from-indigo-600/80 to-violet-600/80 p-6 rounded-xl text-white border border-indigo-500/30">
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            Complete Data Flow
+          </h3>
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <div class="bg-white/15 px-3 py-1.5 rounded-full font-semibold text-xs">User Login</div>
+              <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Rails Verifies</div>
+              <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Generate session_id</div>
+              <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Store in Memcache</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Encrypt session_id</div>
+              <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Set Cookie</div>
+              <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              <div class="bg-emerald-500/30 px-3 py-1.5 rounded-full font-semibold text-xs border border-emerald-400/50 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Authenticated
+              </div>
+            </div>
+
+            <div class="border-t border-white/20 pt-4 mt-4">
+              <div class="text-white/70 text-xs font-medium mb-3">Future Requests:</div>
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Browser sends cookie</div>
+                <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Rails decrypts</div>
+                <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Fetch from Memcache</div>
+                <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                <div class="bg-white/15 px-3 py-1.5 rounded-full text-xs">Load User</div>
+                <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                <div class="bg-emerald-500/30 px-3 py-1.5 rounded-full font-semibold text-xs border border-emerald-400/50 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  Request Processed
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="max-w-7xl mx-auto mt-8">
+    <div class="glass-card rounded-2xl p-5">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap gap-4 sm:gap-6">
+          <div class="flex items-center gap-2 cursor-pointer group">
+            <div class="w-3 h-3 rounded-full bg-blue-500 group-hover:ring-2 ring-blue-500/50 transition-all"></div>
+            <span class="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Browser / Client</span>
+          </div>
+          <div class="flex items-center gap-2 cursor-pointer group">
+            <div class="w-3 h-3 rounded-full bg-emerald-500 group-hover:ring-2 ring-emerald-500/50 transition-all"></div>
+            <span class="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Rails Server</span>
+          </div>
+          <div class="flex items-center gap-2 cursor-pointer group">
+            <div class="w-3 h-3 rounded-full bg-purple-500 group-hover:ring-2 ring-purple-500/50 transition-all"></div>
+            <span class="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Memcache</span>
+          </div>
+          <div class="flex items-center gap-2 cursor-pointer group">
+            <div class="w-3 h-3 rounded-full bg-orange-500 group-hover:ring-2 ring-orange-500/50 transition-all"></div>
+            <span class="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Database</span>
+          </div>
+        </div>
+        <div class="text-xs text-slate-500 font-mono">Rails + Devise + Warden</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="max-w-7xl mx-auto mt-6 mb-4 text-center">
+    <p class="text-xs text-slate-500">Interactive Rails Authentication Flow Diagram</p>
+  </footer>
+
+  <script>
+    function showTab(tabId) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+
+      // Show selected tab content
+      document.getElementById(tabId).classList.add('active');
+
+      // Update tab button styles
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+          btn.classList.remove('glass-card', 'text-slate-300', 'hover:text-white', 'hover:bg-dark-700');
+          btn.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'glow-blue');
+          btn.setAttribute('aria-selected', 'true');
+        } else {
+          btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'glow-blue');
+          btn.classList.add('glass-card', 'text-slate-300', 'hover:text-white', 'hover:bg-dark-700');
+          btn.setAttribute('aria-selected', 'false');
+        }
+      });
+    }
+
+    function toggleExpand(elementId) {
+      const element = document.getElementById(elementId);
+      element.classList.toggle('active');
+    }
+
+    // Initialize with overview tab active
+    document.addEventListener('DOMContentLoaded', () => {
+      showTab('overview');
+    });
+
+    // Keyboard navigation for tabs
+    document.addEventListener('keydown', (e) => {
+      if (e.target.classList.contains('tab-btn')) {
+        const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+        const currentIndex = tabs.indexOf(e.target);
+
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const nextIndex = (currentIndex + 1) % tabs.length;
+          tabs[nextIndex].focus();
+          tabs[nextIndex].click();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+          tabs[prevIndex].focus();
+          tabs[prevIndex].click();
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
