@@ -1,0 +1,12 @@
+# Git internals — keep out of Claude's context
+.git/
+
+# Claude's own data
+.claude/
+
+# OS / editor noise
+.DS_Store
+*.swp
+*.swo
+tmp/
+node_modules/

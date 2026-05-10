@@ -1,0 +1,9 @@
+# Git internals — keep out of Cursor's index
+.git/
+
+# OS / editor noise
+.DS_Store
+*.swp
+*.swo
+tmp/
+node_modules/
