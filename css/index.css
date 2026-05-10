@@ -26,6 +26,222 @@
 }
 
 /* ============================================================
+   Light mode
+   ============================================================ */
+[data-theme="light"] {
+  --bg:       #F0F4FF;
+  --bg2:      #FFFFFF;
+  --surface:  #F8FAFF;
+  --surface2: #EEF2FF;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.13);
+  --text:     #0F172A;
+  --text2:    #475569;
+  --muted:    #94A3B8;
+  --glow-blue:   0 0 24px rgba(59,130,246,0.2);
+  --glow-purple: 0 0 24px rgba(139,92,246,0.2);
+}
+
+[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ── Hero ── */
+[data-theme="light"] .hero {
+  background: radial-gradient(ellipse at 20% 50%, #dbeafe 0%, #e8f0ff 55%),
+              radial-gradient(ellipse at 80% 20%, #ede9fe 0%, transparent 50%);
+}
+
+[data-theme="light"] .aurora-blob-1 {
+  background: radial-gradient(circle, rgba(59,130,246,0.22) 0%, transparent 70%);
+}
+[data-theme="light"] .aurora-blob-2 {
+  background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
+}
+[data-theme="light"] .aurora-blob-3 {
+  background: radial-gradient(circle, rgba(34,211,238,0.12) 0%, transparent 70%);
+}
+
+[data-theme="light"] .hero-deco {
+  background: linear-gradient(
+    105deg,
+    rgba(0,0,0,0.03) 0%,
+    rgba(59,130,246,0.13) 30%,
+    rgba(139,92,246,0.16) 55%,
+    rgba(34,211,238,0.10) 75%,
+    rgba(0,0,0,0.03) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1px rgba(0,0,0,0.05);
+}
+
+/* Avatar ring gap matches hero bg in light */
+[data-theme="light"] .hero-avatar-ring::after {
+  background: #e8f0ff;
+}
+
+[data-theme="light"] .hero-badge {
+  background: rgba(16,185,129,0.1);
+  color: #059669;
+  border-color: rgba(16,185,129,0.22);
+}
+
+[data-theme="light"] .hero-title {
+  color: #0F172A;
+  text-shadow: none;
+}
+
+/* Subtitle typed text — deeper gradient for light bg contrast */
+[data-theme="light"] .hero-subtitle {
+  background: linear-gradient(90deg, #1D4ED8, #0891B2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .type-cursor {
+  -webkit-text-fill-color: #1D4ED8;
+}
+
+[data-theme="light"] .hero-desc {
+  color: #475569;
+}
+
+/* "strong" text was hardcoded white — make it dark */
+[data-theme="light"] .hero-desc strong {
+  color: #0F172A;
+}
+
+[data-theme="light"] .hero-stack-tag {
+  color: #475569;
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.1);
+}
+
+[data-theme="light"] .hero-scroll { color: rgba(0,0,0,0.25); }
+[data-theme="light"] .hero-scroll:hover { color: rgba(0,0,0,0.5); }
+
+[data-theme="light"] .btn-ghost-white {
+  background: rgba(0,0,0,0.06);
+  color: #0F172A;
+  border-color: rgba(0,0,0,0.15);
+}
+[data-theme="light"] .btn-ghost-white:hover {
+  background: rgba(0,0,0,0.1);
+  color: #0F172A;
+}
+
+/* ── Nav ── */
+[data-theme="light"] .nav-wrap.scrolled {
+  background: rgba(240,244,255,0.9);
+}
+
+[data-theme="light"] .nav-logo { color: #0F172A; }
+[data-theme="light"] .nav-logo-accent { color: #475569; }
+
+[data-theme="light"] .nav-list li a { color: rgba(15,23,42,0.5); }
+[data-theme="light"] .nav-list li a:hover { color: rgba(15,23,42,0.85); }
+[data-theme="light"] .nav-list li.active a { color: #0F172A; }
+
+[data-theme="light"] .nav-cta {
+  background: rgba(0,0,0,0.04);
+  color: rgba(15,23,42,0.7);
+  border-color: rgba(0,0,0,0.12);
+}
+[data-theme="light"] .nav-cta:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ── Headings (global) ── */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 { color: var(--text); }
+
+/* ── Sections ── */
+[data-theme="light"] .card-section {
+  background: var(--bg2);
+  border-color: var(--border);
+}
+[data-theme="light"] .card-section::before {
+  background: linear-gradient(90deg, transparent, rgba(59,130,246,0.2), rgba(139,92,246,0.2), transparent);
+}
+
+/* ── About ── */
+[data-theme="light"] .about-name { color: #0F172A; }
+[data-theme="light"] .about-name-zh { color: #94A3B8; }
+[data-theme="light"] .about-img-frame img { border-color: var(--border2); }
+[data-theme="light"] .about-stats {
+  background: var(--surface);
+  border-color: var(--border);
+}
+[data-theme="light"] .stat-divider { background: var(--border2); }
+
+/* ── Skills ── */
+[data-theme="light"] .shc-blue   { border-color: rgba(59,130,246,0.25); background: rgba(59,130,246,0.05); }
+[data-theme="light"] .shc-purple { border-color: rgba(139,92,246,0.25); background: rgba(139,92,246,0.05); }
+[data-theme="light"] .shc-cyan   { border-color: rgba(34,211,238,0.25); background: rgba(34,211,238,0.05); }
+[data-theme="light"] .progress { background: rgba(0,0,0,0.07); }
+[data-theme="light"] .skills-callout {
+  background: rgba(59,130,246,0.05);
+  border-color: rgba(59,130,246,0.18);
+}
+
+/* ── Projects ── */
+[data-theme="light"] .project-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+[data-theme="light"] .pc-img img { filter: brightness(0.95); }
+[data-theme="light"] .project-card:hover .pc-img img { filter: brightness(1); }
+[data-theme="light"] .pc-tag {
+  background: rgba(0,0,0,0.05);
+  border-color: var(--border2);
+  color: var(--text2);
+}
+
+/* ── Contact ── */
+[data-theme="light"] .contact-section {
+  background: linear-gradient(135deg, var(--bg2) 0%, #eef2ff 100%);
+}
+[data-theme="light"] .contact-link {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text2);
+}
+[data-theme="light"] .contact-link:hover {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+/* ── Mobile nav ── */
+[data-theme="light"] .mobile-nav { background: rgba(240,244,255,0.97); }
+[data-theme="light"] .mobile-nav-list li a { color: var(--text2); }
+[data-theme="light"] .mobile-nav-list li a:hover { background: var(--surface2); color: var(--text); }
+[data-theme="light"] .mobile-nav-close {
+  background: var(--surface);
+  border-color: var(--border2);
+  color: var(--text2);
+}
+
+/* ── Footer ── */
+[data-theme="light"] footer { color: var(--muted); }
+[data-theme="light"] footer a { color: var(--muted); }
+[data-theme="light"] footer a:hover { color: var(--text2); }
+
+/* ── Misc buttons ── */
+[data-theme="light"] .btn-ghost {
+  color: var(--text2);
+  border-color: var(--border2);
+}
+[data-theme="light"] .btn-ghost:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* ============================================================
    Reset
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; }
@@ -161,6 +377,39 @@ h1, h2, h3, h4 {
   color: #fff;
 }
 
+/* Theme toggle button */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: rgba(255,255,255,0.05);
+  color: var(--text2);
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.theme-toggle:hover {
+  background: var(--surface2);
+  border-color: var(--blue);
+  color: var(--blue);
+  transform: rotate(20deg);
+}
+[data-theme="light"] .theme-toggle {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.12);
+  color: var(--text2);
+}
+[data-theme="light"] .theme-toggle:hover {
+  background: var(--surface2);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
 /* ============================================================
    Buttons
    ============================================================ */
@@ -293,7 +542,18 @@ h1, h2, h3, h4 {
   font-size: clamp(100px, 22vw, 240px);
   font-weight: 800;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+  background: linear-gradient(
+    105deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(59,130,246,0.18) 30%,
+    rgba(139,92,246,0.22) 55%,
+    rgba(34,211,238,0.15) 75%,
+    rgba(255,255,255,0.03) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.07);
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
@@ -301,6 +561,12 @@ h1, h2, h3, h4 {
   left: 50%;
   transform: translate(-50%, -50%);
   letter-spacing: 0.12em;
+  animation: decoShimmer 8s ease-in-out infinite alternate;
+}
+
+@keyframes decoShimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
 .hero-content {
